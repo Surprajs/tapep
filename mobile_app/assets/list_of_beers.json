@@ -1,0 +1,24 @@
+{
+    "beers":[
+        {
+        "id": 0, 
+        "name": "Lech",
+        "price": 500
+},
+        {
+        "id": 1, 
+        "name": "Kozel",
+        "price": 900
+},
+        {
+        "id": 2, 
+        "name": "Piast",
+        "price": 350
+},
+        {
+        "id": 3, 
+        "name": "Kustosz",
+        "price": 1100
+}
+]
+}
