@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:convert';
 
-String convertToPLN(int price) => (price/100).toStringAsFixed(2);
+String convertToPLN(int price) => (price / 100).toStringAsFixed(2);
 
 class Beer {
   final int id;
@@ -16,43 +16,48 @@ class Beer {
   void incCounter() {
     _counter++;
   }
+
   void decCounter() {
     if (_counter > 0) _counter--;
   }
 }
+
 final _beers = <Beer>[];
 Future<void> readJson() async {
-  final String response = await rootBundle.loadString("assets/list_of_beers.json");
-  final data = await json.decode(response);
-  List items = data["beers"];
-  for (final item in items) {
-    _beers.add(Beer(item["id"], item["name"], item["price"]));
-  }
+  await rootBundle
+      .loadString('assets/list_of_beers.json')
+      .then(json.decode)
+      .then((data) => data["beers"])
+      .then((list) =>
+          list.map((item) => Beer(item["id"], item["name"], item["price"])))
+      .then((list) => list.forEach(_beers.add));
 }
+
 class Order {
-  final _beers = <String,int>{};
-  Map<String,int> get beers => _beers;
+  final _beers = <String, int>{};
+  Map<String, int> get beers => _beers;
   int _totalPrice = 0;
   int get totalPrice => _totalPrice;
   Order();
   Map toJson() => {
-    "order": _beers.toString(),
-    "price": _totalPrice,
-  };
+        "order": _beers.toString(),
+        "price": _totalPrice,
+      };
   void addBeer(Beer beer) {
     if (beer.counter > 0) {
       beers.addAll({beer.name: beer.counter});
       _totalPrice += beer.price;
     }
   }
+
   void removeBeer(Beer beer) {
-      if (beers.containsKey(beer.name) && beer.counter == 0) {
-        beers.remove(beer.name);
-        _totalPrice -= beer.price;
-      } else if (beer.counter > 0){
-        beers.addAll({beer.name: beer.counter});
-        _totalPrice -= beer.price;
-      }
+    if (beers.containsKey(beer.name) && beer.counter == 0) {
+      beers.remove(beer.name);
+      _totalPrice -= beer.price;
+    } else if (beer.counter > 0) {
+      beers.addAll({beer.name: beer.counter});
+      _totalPrice -= beer.price;
+    }
   }
 }
 
@@ -93,7 +98,8 @@ class OrderedBeersState extends State<OrderedBeers> {
           IconButton(
             icon: const Icon(Icons.qr_code_2),
             onPressed: _order.beers.isEmpty ? null : _pushOrder,
-            tooltip: _order.beers.isEmpty ? "Order is empty" : "Generate QR Code",
+            tooltip:
+                _order.beers.isEmpty ? "Order is empty" : "Generate QR Code",
           ),
         ],
       ),
@@ -101,7 +107,6 @@ class OrderedBeersState extends State<OrderedBeers> {
         padding: const EdgeInsets.all(16.0),
         itemCount: _beers.length,
         itemBuilder: (context, i) => ListTile(
-
           title: Text(
             _beers[i].name,
             style: const TextStyle(fontSize: 18, color: Colors.black),
@@ -115,44 +120,41 @@ class OrderedBeersState extends State<OrderedBeers> {
             child: Row(
               children: [
                 InkWell(
-                  borderRadius: const BorderRadius.all(Radius.circular(2.0)),
-                  onTap: () {
-                    setState(() {
-                      _beers[i].decCounter();
-                      _order.removeBeer(_beers[i]);
-                    });
-                  },
-                  child: Icon(
-                    Icons.remove_circle_outline,
-                    color: _beers[i].counter > 0 ? Colors.black : Colors.grey.shade400,
-                    size: 30,
-                  )
-                ),
+                    borderRadius: const BorderRadius.all(Radius.circular(2.0)),
+                    onTap: () {
+                      setState(() {
+                        _beers[i].decCounter();
+                        _order.removeBeer(_beers[i]);
+                      });
+                    },
+                    child: Icon(
+                      Icons.remove_circle_outline,
+                      color: _beers[i].counter > 0
+                          ? Colors.black
+                          : Colors.grey.shade400,
+                      size: 30,
+                    )),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 3),
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
-                  // decoration: BoxDecoration(
-                  //     b_orderRadius: B_orderRadius.circular(3),
-                  //     color: Colors.white),
+                      const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
                   child: Text(
-                     _beers[i].counter.toString(),
+                    _beers[i].counter.toString(),
                     style: const TextStyle(color: Colors.black, fontSize: 40),
                   ),
                 ),
                 InkWell(
-                  onTap: () {
-                    setState(() {
-                      _beers[i].incCounter();
-                      _order.addBeer(_beers[i]);
-                    });
-                  },
-                  child: const Icon(
-                    Icons.add_circle_outline,
-                    color: Colors.black,
-                    size: 30,
-                  )
-                ),
+                    onTap: () {
+                      setState(() {
+                        _beers[i].incCounter();
+                        _order.addBeer(_beers[i]);
+                      });
+                    },
+                    child: const Icon(
+                      Icons.add_circle_outline,
+                      color: Colors.black,
+                      size: 30,
+                    )),
               ],
             ),
           ),
@@ -185,7 +187,8 @@ class OrderedBeersState extends State<OrderedBeers> {
                   child: RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
-                      text: "Total Price: ${convertToPLN(_order.totalPrice)} PLN\nDetails of the order:\n",
+                      text:
+                          "Total Price: ${convertToPLN(_order.totalPrice)} PLN\nDetails of the order:\n",
                       style: const TextStyle(fontSize: 25, color: Colors.black),
                       children: _order.beers.entries.map((entry) {
                         String line = "${entry.value}x ${entry.key}\n";
@@ -208,3 +211,4 @@ class OrderedBeers extends StatefulWidget {
   @override
   State<OrderedBeers> createState() => OrderedBeersState();
 }
+
